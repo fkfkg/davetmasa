@@ -1,151 +1,86 @@
-# DavetMasa - Oturma Düzeni Uygulaması
+# 💍 DavetMasa (Oturma Düzeni)
 
-Bu proje, düğün ve etkinlikler için masa ve misafir oturma düzenini ayarlayan, şifreli lisans sistemine sahip bir masaüstü uygulamasıdır.
+> Next.js ve Electron ile geliştirilen; düğün, nişan ve etkinlikler için masa yerleşimi ve misafir oturma düzeni yönetimi sağlayan Windows masaüstü uygulaması.
 
-## Mimari ve Altyapı
-- **Arayüz & Backend:** Next.js (Standalone modda) + React + Tailwind CSS
-- **Masaüstü Sarıcısı:** Electron.js + Electron Builder
-- **Veritabanı:** `data/` klasöründe yerel JSON tabanlı (şifrelenmiş) veri dosyaları.
+**Teknolojiler:** Next.js 16 (standalone) · React 19 · TypeScript · Tailwind CSS v4 · Electron · electron-builder (NSIS) · dnd-kit (sürükle-bırak) · QR kod · PapaParse (CSV)
 
-## Lisans ve Güvenlik Sistemi (Yeni Güncelleme)
-Uygulamaya üst düzey bir lisans sistemi entegre edilmiştir:
-- **RSA/ECDSA Algoritması:** Lisans anahtarları Asimetrik Şifreleme ile üretilir. Uygulama sadece `Public Key` barındırır, böylece dışarıdan tersine mühendislikle sahte anahtar üretilmesi imkansızdır.
-- **Hardware ID (Donanım Kimliği):** Her lisans kodu sadece üretildiği bilgisayarın anakart/işlemci kimliğinde çalışır.
-- **Zaman Hilesi Koruması:** `lastSeen` mekanizması ile bilgisayarın saati geri alınsa bile uygulama bunu algılar ve lisansı iptal eder.
-- **AdminKeygen.exe:** Lisans anahtarı üretmek için sadece geliştiricide kalması gereken ayrı bir komut satırı aracı oluşturulmuştur.
+## ⬇️ İndirme
 
-## Çözülen Kritik Hatalar
-- **EPIPE Broken Pipe Hatası:** Windows işletim sistemlerinde Electron uygulaması arka planda çalışırken `console.log` kullanıldığında oluşan çökme (crash) sorunu, `main.js` içerisinde üretim (production) modunda konsol çıktıları susturularak çözüldü.
-- **Klasör İzinleri (EPERM):** Kurulum `C:\Program Files` altına yapıldığında Windows'un dosya yazma engeline takılması sorunu, tüm veritabanı ve kayıt dosyalarının `%AppData%` (User Data Path) içine yazılması sağlanarak çözüldü.
-- **Asar Kısıtlaması:** Next.js standalone sunucusunun `.asar` arşivi içerisinden çalışamaması sorunu, `package.json` üzerinden `asar: false` yapılarak düzeltildi.
-- **Base64 Bozulması:** Lisans kodlarının büyük harfe çevrilip bozulması ve kopyalama boşlukları (trim) hataları giderildi.
+Bu bir masaüstü uygulamasıdır; canlı web sürümü yoktur.
 
-## Derleme ve Dağıtım (Build)
-Projeyi müşteriye göndermek üzere EXE haline getirmek için şu komut kullanılır:
-```bash
-npm run dist
+**➡️ [GitHub Releases sayfasından `OturmaDuzeni-Setup.exe` dosyasını indirin](https://github.com/fkfkg/davetmasa/releases/latest)**
+
+**Kurulum:** İndirilen `OturmaDuzeni-Setup.exe` dosyasını çalıştırın → standart "İleri → İleri → Kur" sihirbazını takip edin. Masaüstü kısayolu otomatik oluşturulur. Uygulama Windows 10/11 üzerinde çalışır.
+
+---
+
+## 📸 Ekran Görüntüleri
+
+<!-- Buraya salon editörü, misafir listesi ve QR ekranı görüntülerini ekleyin -->
+*Ekran görüntüleri yakında eklenecek.*
+
+---
+
+## ✨ Özellikler
+
+- **Görsel salon editörü** — Masaları sürükle-bırak ile yerleştirin; masa şekli, boyutu, rengi, kapasitesi ve döndürme ayarlanabilir.
+- **Misafir yönetimi** — Misafir ekleme, taraf/grup/VIP/çocuk/yaşlı etiketleri, masalara atama; CSV içe ve dışa aktarma (Excel uyumlu, UTF-8 BOM).
+- **Salon şablonları** — Hazırladığınız salon düzenini şablon olarak kaydedin; yeni etkinlikleri "Sıfırdan" veya "Şablondan" başlatın. Şablondan oluşturulan etkinlikler birbirinden bağımsızdır.
+- **QR kod ile misafir ekranı** — Misafirler telefonlarından QR okutarak yerel ağ (`http://192.168.x.x:PORT/...`) üzerinden oturma planını görebilir. IP otomatik bulunur, gerekirse elle girilebilir.
+- **A4 PDF çıktısı** — Oturma planı tek tıkla A4 PDF olarak masaüstüne kaydedilir (Electron `printToPDF`).
+- **Yedekleme** — Tüm veriler tek JSON dosyasına yedeklenir; geri yükleme öncesi otomatik güvenlik yedeği alınır. Yedeklere lisans/şifre gibi gizli veriler dahil edilmez.
+- **Tamamen çevrimdışı** — Veriler `%AppData%` altında yerel olarak saklanır; internet bağlantısı gerektirmez.
+- **Lisans sistemi** — ECDSA asimetrik imza + donanım kimliği (HWID) tabanlı lisanslama. Uygulama yalnızca public key içerir; saat geri alma hilesine karşı koruma vardır.
+
+## 🏗️ Mimari
+
+```
+main.js                 # Electron ana süreç (pencere, yerel sunucu, PDF)
+preload.js              # Electron köprüsü
+src/app/                # Next.js App Router sayfaları
+├── (dashboard)/        # Panel: etkinlikler, misafirler, salon editörü, QR, yazdırma
+├── (auth)/             # Giriş / kayıt / kurulum
+├── activation/         # Lisans aktivasyon ve kilit ekranı
+└── api/                # Yerel API: veri, yedekleme, lisans, ağ bilgisi
+src/lib/                # Lisans doğrulama, HWID, yerel veri katmanı
+supabase/               # Opsiyonel bulut şeması (SQL) — varsayılan mod tamamen yereldir
 ```
 
-## Son Yapılan Düzeltmeler
+## 🚀 Geliştirme Ortamı
 
-### Uygulama Açılışı ve Paketleme
-- Masaüstü kısayolunun açtığı `C:\Program Files\OturmaDuzeni\OturmaDuzeni.exe` güncellendi.
-- Electron paketinde Next.js standalone sunucusunun yanlışlıkla tekrar Electron uygulaması gibi açılması düzeltildi.
-- Paketli uygulamada sunucu artık `ELECTRON_RUN_AS_NODE=1` ile Node modunda başlatılıyor.
-- Uygulama iç penceresi `/dashboard` ekranına açılacak şekilde ayarlandı.
-- Port çakışması olursa uygulama 3000'den başlayarak boş port bulacak şekilde düzenlendi.
-- Paket içinde CSS ve public dosyaları yanlış yerde kaldığında arayüzün bozulması düzeltildi.
-- Dev logo / kocaman siyah görsel sorunu, `.next/static` ve `public` dosyalarının Next standalone klasörüne taşınmasıyla giderildi.
+```bash
+git clone https://github.com/fkfkg/davetmasa.git
+cd davetmasa
+npm install
+npm run dev            # Next.js geliştirme sunucusu
+npm run electron:dev   # Electron penceresiyle çalıştırma
+npm run dist           # Windows kurulum dosyası üretir (dist-electron/)
+```
 
-### QR Kod ve Yerel Ağ Sistemi
-- QR linkleri artık `localhost` kullanmıyor.
-- Bilgisayarın yerel ağ IP adresi otomatik bulunuyor.
-- QR linkleri şu formata çevrildi: `http://192.168.x.x:PORT/public/...`
-- Yeni `/api/network` endpoint'i eklendi; yerel IP adresini ve çalışan portu döndürüyor.
-- Uygulamanın iç sunucusu yerel ağdaki telefon ve diğer bilgisayarlardan erişilebilmesi için `0.0.0.0` üzerinde dinleyecek şekilde ayarlandı.
-- Uygulama penceresi kendi içinde yine `127.0.0.1` üzerinden güvenli şekilde açılıyor.
-- Test edilen örnek adres: `http://192.168.1.25:3000/public/...`
-- Test sonucunda yerel ağ public sayfası `200` cevap verdi.
+> Not: Uygulama varsayılan olarak tamamen yerel çalışır; `.env` dosyası gerektirmez.
 
-### Manuel IP Ayarı
-- Ayarlar ekranına “Yerel Ağ QR Bağlantısı” bölümü eklendi.
-- Otomatik bulunan IP bu ekranda gösteriliyor.
-- Otomatik IP bulunamazsa kullanıcı manuel IP girebiliyor.
-- Manuel IP girilirse QR kod bağlantılarında otomatik IP yerine bu değer kullanılıyor.
+## 👤 Ben Ne Yaptım, AI Ne Yaptı?
 
-### Windows Firewall Uyarısı
-- QR ekranına Windows Güvenlik Duvarı uyarısı eklendi.
-- Kullanıcıya izin penceresi çıkarsa “İzin ver” seçmesi gerektiği belirtiliyor.
-- Telefonların ve diğer bilgisayarların aynı Wi-Fi / yerel ağda olması gerektiği yazıldı.
-- Bu uyarı yazdırma çıktısında görünmeyecek şekilde `no-print` alanında tutuldu.
+- **Ben:** Ürün fikri ve gerçek düğün organizasyonu ihtiyaç analizi, ekran tasarım kararları, Windows üzerinde kurulum/paketleme testleri, yerel ağ QR akışının telefonlarla gerçek ortamda test edilmesi, lisanslama iş modeli.
+- **AI (Claude / AI araçları):** Kod yazımının büyük bölümü — salon editörü, Electron paketleme yapılandırması, lisans/HWID sistemi, PDF ve QR akışları AI desteğiyle geliştirildi.
 
-### Lisans Süresi Bittiğinde Kilit Ekranı
-- Lisans süresi bittiğinde aktivasyon ekranı kilit ekranı gibi davranacak şekilde güncellendi.
-- Süre dolduysa başlık “Lisans Süresi Doldu” olur.
-- Ekranda kilit ikonu gösterilir.
-- “PC Adresiniz” alanında bilgisayarın Hardware ID bilgisi gösterilir.
-- Kullanıcıya “Lütfen bu bilgisayar için key yenileyin” mesajı gösterilir.
-- Kullanıcı bu PC adresini lisans satıcısına gönderip yeni key alabilir.
-Bu komut, uygulamayı derler ve `dist/OturmaDuzeni Setup.exe` dosyasını oluşturur.
-Oluşan dosya standart bir "İleri-İleri-Kur" sihirbazına (Wizard) sahiptir ve masaüstü kısayolunu otomatik oluşturur.
+## ⚠️ Bilinen Eksikler
 
-## Yazdırma ve PDF Kaydetme Güncellemesi
-- Yazdırma ekranındaki eski `window.print()` akışı değiştirildi.
-- Artık buton doğrudan A4 PDF oluşturup Masaüstü'ne kaydeder.
-- PDF dosya adı organizasyon adı ve etkinlik tarihiyle oluşturulur.
-- Aynı isimli dosya varsa üstüne yazılmaz; sonuna numara eklenir.
-- PDF üretimi Electron `printToPDF` üzerinden yapılır, bu yüzden fiş/fatura yazıcısına yanlışlıkla gönderme sorunu engellenir.
-- PDF sayfa boyutu A4 portrait olarak sabitlendi.
-- Yazdırmada görünmemesi gereken kontrol butonları `no-print` ile PDF dışında bırakılır.
+- Yalnızca Windows destekleniyor (macOS/Linux paketi yok).
+- `package.json` build ayarları `data/` ve `davetmasa_data.json` dosyalarına başvurur; bu dosyalar kişisel veri içerdiği için repoda yer almaz — kaynak koddan paket almak için boş bir `data/` klasörü oluşturmanız gerekir.
+- Lisans anahtarı üreten araç (keygen) güvenlik gereği bu repoda **yer almaz**; kaynak koddan derlenen sürüm aktivasyon ister.
+- QR misafir ekranı yalnızca aynı Wi-Fi/yerel ağdaki cihazlarda çalışır; ilk açılışta Windows Güvenlik Duvarı izni gerekir.
 
-## Yerel Veri ve Dashboard Güncellemesi
-- Dashboard'un sürekli “Organizasyonunuzu Oluşturun” ekranına düşmesine sebep olan yerel sorgu hatası düzeltildi.
-- Yerel Supabase taklidine `.in(...)` sorgu desteği eklendi.
-- Kayıt işlemleri diske yazma tamamlanmadan bitmiş sayılmayacak şekilde güncellendi.
-- Etkinlik detayındaki “Toplam Misafir”, “Oturan”, “Oturmayan” ve “Masa Sayısı” istatistikleri artık gerçek yerel veriden hesaplanıyor.
-- Masalar, misafirler ve masa atamaları kaydedildikten sonra ekranda doğru sayılara yansır.
+## 🔒 Güvenlik
 
-## Klavye ve Form Odak Düzeltmesi
-- Electron penceresinde inputlara yazı yazmayı etkileyen odak problemi için pencere açılışında ve pencere odaklandığında `webContents.focus()` çağrısı eklendi.
-- Varsayılan Electron menüsü kaldırıldı; klavye odağunun menüye kayması engellendi.
-- Arka plan yavaşlatma kapatıldı.
-- Yerel kullanıcı oluşturma işlemi kayıt tamamlanmadan devam etmeyecek şekilde güncellendi.
-- Chrome üzerinde misafir ekleme inputu test edildi; inputa yazı girme başarılı.
+- Repo hiçbir private key, lisans anahtarı, şifre veya kişisel veri içermez; uygulama yalnızca public key barındırır.
+- Tüm kullanıcı verileri yerel diskte (`%AppData%`) tutulur; hiçbir veri dışarı gönderilmez.
+- Yedek dosyalarına lisans/şifre/cihaz kimliği gibi güvenlik verileri yazılmaz.
 
-## Uygulama ve Kurulum İkonu Güncellemesi
-- Kullanıcının verdiği `ChatGPT Image 3 Tem 2026 15_26_01.png` görselinden Windows `.ico` ikon dosyası üretildi.
-- Normal uygulama exe ikonu `build/icon.ico` üzerinden ayarlandı.
-- Setup / kurulum exe ikonu `build/installer.ico` üzerinden ayarlandı.
-- Electron Builder `win.icon`, `nsis.installerIcon`, `nsis.uninstallerIcon` ve `nsis.installerHeaderIcon` ayarları güncellendi.
-- `public/icon.png` aynı görselle yenilendi; uygulama pencere ikonu da aynı logoyu kullanır.
-- Masaüstündeki `OturmaDuzeni Setup.exe` ve `Oturma Düzeni Kurulum.exe` yeni ikonlu setup dosyasıyla yenilendi.
-- Kurulu `C:\Program Files\OturmaDuzeni\OturmaDuzeni.exe` yeni ikonlu sürümle güncellendi.
-- Public Desktop üzerindeki `Oturma Düzeni.lnk` kısayolu yeni exe ikonuna tekrar bağlandı.
+## 📄 Lisans
 
-## Salon Sablonu ve Yedekleme Guncellemesi
-- Ayarlar ekranina "Salon Sablonlari" bolumu eklendi.
-- Salon sablonu artik sadece alan olcusunu degil, masa yerlesimlerini de saklar.
-- Her sablon masasinda `id`, `name`, `x`, `y`, `width`, `height`, `capacity`, `type`, `rotation`, `shape`, `color` ve `sort_order` bilgileri tutulur.
-- Yeni etkinlik olustururken "Sifirdan Basla" veya "Salon Sablonundan" secimi eklendi.
-- Sablondan etkinlik olusturulunca masalar deep copy ile kopyalanir ve her masa icin yeni ID uretilir.
-- Bu sayede Dugun 1'de masa silmek veya tasimak Dugun 2'yi ya da ana salon sablonunu etkilemez.
-- Salon plani editorune "Bu duzeni sablon kaydet" butonu eklendi.
-- Kullanici mevcut etkinlikte salonu hazirlayip ayni duzeni tekrar kullanilabilir salon sablonu olarak kaydedebilir.
-- Sablondan gelen etkinliklerde salon alan olcusu etkinlige kaydedilir; editor bu olcuyu kullanir.
-- Ayarlar ekranina "Yedekleme" bolumu eklendi.
-- "Yedek Al" butonu organizasyon, etkinlik, misafir, masa, salon sablonu, QR/PDF verileri ve ayarlari JSON olarak indirir.
-- Yedek dosyasina lisans, sifre, cihaz kimligi, private key, token ve gizli anahtar gibi guvenlik verileri eklenmez.
-- "Yedekten Geri Yukle" yapmadan once sistem otomatik olarak mevcut verinin guvenlik yedegini alir.
-- Yanlis yedek yuklenirse `backups/geri-yukleme-oncesi-...json` dosyasindan onceki veriye donulebilir.
-- Derleme testi `npm run build` ile yapildi ve basarili tamamlandi.
+Bu depo kaynak kodun incelenmesi için herkese açıktır ancak **ticari bir üründür — tüm hakları saklıdır**. Kod, izinsiz olarak kopyalanamaz, yeniden dağıtılamaz veya ticari amaçla kullanılamaz.
 
-## Misafir CSV Disa Aktarma Guncellemesi
-- Misafir listesi ekranina `CSV Indir` butonu eklendi.
-- Excel'de acilabilmesi icin dosya UTF-8 BOM ile uretilir.
-- Disari aktarilan alanlar: Ad Soyad, Telefon, Taraf, Grup, Masa, Not, VIP, Cocuk, Yasli.
-- Mevcut CSV yukleme akisi korunur.
+---
 
-## Son Kontrol ve Paketleme
-- Salon sablonu testinde masa yerlesimlerinin tam saklandigi dogrulandi.
-- Sablondan olusturulan Dugun 1 ve Dugun 2 masalarinin yeni ID aldigi dogrulandi.
-- Dugun 1'de masa degisikligi yapildiginda Dugun 2'nin etkilenmedigi dogrulandi.
-- "Bu duzeni sablon kaydet" akisinin mevcut masa yerlesimini yeni salon sablonuna kaydettigi dogrulandi.
-- Yedek alma testinde gizli alanlarin yedege girmedigi dogrulandi.
-- Yedekten geri yukleme oncesinde otomatik guvenlik yedegi olustugu dogrulandi.
-- Misafir ekleme ve masaya atama verisi dogrulandi.
-- QR public sayfasi, PDF sayfasi, ayarlar, yeni etkinlik, salon editoru, lisans ve sifre ekranlari 200 durum koduyla test edildi.
-- CSV ice aktarma ve CSV disa aktarma parser testi basarili oldu.
-- `npm run dist` ile yeni Windows setup olusturuldu.
-- Yeni setup dosyasi `dist-electron/OturmaDuzeni Setup 0.1.0.exe` altinda olustu.
-- Masaustundeki `OturmaDuzeni Setup.exe` ve `Oturma Duzeni Kurulum.exe` yeni setup dosyasiyla yenilendi.
-- `AdminKeygen.exe` / `Keygen` dosyalari musteri paketine ve kurulu uygulama klasorune dahil edilmedi.
-- Kurulu uygulama `C:\Program Files\OturmaDuzeni` altinda yeniden kurulum yapmadan guncellendi.
-- Public Desktop kisayolu `C:\Program Files\OturmaDuzeni\OturmaDuzeni.exe` hedefini gostermeye devam ediyor.
-- Kurulu uygulama acildi; `/settings`, `/events/new`, `/api/backup`, `/activation`, `/login` yollari paketli uygulama uzerinde basarili cevap verdi.
-
-## Paketli Uygulama CSS Duzeltmesi
-- Paketli uygulamada ekranin duz HTML gibi acilmasina sebep olan static/CSS kopyalama sorunu giderildi.
-- `main.js` icindeki standalone asset kopyalama mantigi guncellendi; uygulama acilista eski static dosyalari tutmayip yeni build static/public dosyalarini kopyalar.
-- Kurulu `C:\Program Files\OturmaDuzeni` klasoru yeni paketle tekrar esitlendi.
-- Masaustundeki setup dosyalari yeniden olusturulan setup ile yenilendi.
-- Paketli uygulama acilip `/dashboard` ve ana CSS dosyasi test edildi; CSS dosyasi 200 cevabi verdi.
+📝 Detaylı geliştirme geçmişi için: [docs/GELISTIRME-NOTLARI.md](docs/GELISTIRME-NOTLARI.md)
