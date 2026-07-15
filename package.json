@@ -1,0 +1,91 @@
+{
+  "name": "davetmasa",
+  "version": "0.1.0",
+  "private": true,
+  "author": "FaturaMatik",
+  "description": "Oturma Düzeni Yonetim Sistemi",
+  "main": "main.js",
+  "scripts": {
+    "dev": "next dev --webpack -H 0.0.0.0",
+    "build": "next build --webpack",
+    "start": "next start -H 0.0.0.0",
+    "lint": "eslint",
+    "electron:dev": "cross-env NODE_ENV=development electron .",
+    "build:exe": "npm run build && electron-builder --win --dir",
+    "dist": "npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "next": "16.2.9",
+    "papaparse": "^5.5.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-qr-code": "^2.2.0",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
+    "concurrently": "^10.0.3",
+    "cross-env": "^10.1.0",
+    "electron": "^42.5.0",
+    "electron-builder": "^26.15.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "appId": "com.davetmasa.app",
+    "productName": "OturmaDuzeni",
+    "icon": "build/icon.ico",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*",
+      "data/**/*",
+      "davetmasa_data.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/static",
+        "to": ".next/standalone/.next/static"
+      },
+      {
+        "from": "public",
+        "to": ".next/standalone/public"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "build/installer.ico",
+      "uninstallerIcon": "build/installer.ico",
+      "installerHeaderIcon": "build/installer.ico",
+      "shortcutName": "Oturma Düzeni",
+      "runAfterFinish": true,
+      "installerLanguages": ["tr"],
+      "language": "0x041F"
+    },
+    "asar": false
+  }
+}
